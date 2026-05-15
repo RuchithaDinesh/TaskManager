@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    header h1 { font-size: 22px; }
+    .logout-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .logout-btn:hover { background: rgba(255,255,255,0.3); }
+    .container { max-width: 900px; margin: 30px auto; padding: 0 16px; }
+    .add-task-box {
+      background: white;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+    .add-task-box h2 { margin-bottom: 16px; color: #333; font-size: 18px; }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      font-family: inherit;
+      transition: border 0.3s;
+    }
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    textarea { resize: vertical; height: 80px; }
+    .add-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 11px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .add-btn:hover { opacity: 0.9; }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 8px 20px;
+      border-radius: 20px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+    }
+    .task-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .task-info { flex: 1; }
+    .task-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 4px;
+    }
+    .task-desc { color: #666; font-size: 13px; margin-bottom: 8px; }
+    .task-meta { font-size: 12px; color: #aaa; }
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-in-progress { background: #cfe2ff; color: #0a58ca; }
+    .status-completed { background: #d1e7dd; color: #0f5132; }
+    .task-actions { display: flex; gap: 8px; flex-direction: column; align-items: flex-end; }
+    .btn-complete {
+      background: #d1e7dd;
+      color: #0f5132;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-progress {
+      background: #cfe2ff;
+      color: #0a58ca;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-delete {
+      background: #f8d7da;
+      color: #842029;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .empty-msg {
+      text-align: center;
+      color: #aaa;
+      padding: 40px;
+      font-size: 15px;
+    }
+    .stats {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 24px;
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .stat-number { font-size: 28px; font-weight: 800; color: #667eea; }
+    .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🗂️ Task Manager</h1>
+    <a href="/logout" class="logout-btn">Logout</a>
+  </header>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="totalCount">0</div>
+        <div class="stat-label">Total Tasks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="pendingCount">0</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="progressCount">0</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="doneCount">0</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+
+    <!-- Add Task -->
+    <div class="add-task-box">
+      <h2>➕ Add New Task</h2>
+      <input type="text" id="taskTitle" placeholder="Task title...">
+      <textarea id="taskDesc" placeholder="Task description..."></textarea>
+      <button class="add-btn" onclick="addTask()">Add Task</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterTasks('all', this)">All</button>
+      <button class="filter-btn" onclick="filterTasks('pending', this)">Pending</button>
+      <button class="filter-btn" onclick="filterTasks('in-progress', this)">In Progress</button>
+      <button class="filter-btn" onclick="filterTasks('completed', this)">Completed</button>
+    </div>
+
+    <!-- Task List -->
+    <div id="taskList"></div>
+  </div>
+
+  <script>
+    let allTasks = [];
+    let currentFilter = 'all';
+
+    async function loadTasks() {
+      const res = await fetch('/tasks');
+      allTasks = await res.json();
+      updateStats();
+      renderTasks();
+    }
+
+    function updateStats() {
+      document.getElementById('totalCount').textContent = allTasks.length;
+      document.getElementById('pendingCount').textContent = allTasks.filter(t => t.status === 'pending').length;
+      document.getElementById('progressCount').textContent = allTasks.filter(t => t.status === 'in-progress').length;
+      document.getElementById('doneCount').textContent = allTasks.filter(t => t.status === 'completed').length;
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('taskList');
+      const filtered = currentFilter === 'all' ? allTasks : allTasks.filter(t => t.status === currentFilter);
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-msg">No tasks found! Add one above. 🎯</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(task => `
+        <div class="task-card">
+          <div class="task-info">
+            <div class="task-title">${task.title}</div>
+            <div class="task-desc">${task.description || 'No description'}</div>
+            <div class="task-meta">📅 Created: ${task.createdAt}</div>
+          </div>
+          <div class="task-actions">
+            <span class="status-badge status-${task.status}">${task.status}</span>
+            ${task.status !== 'in-progress' && task.status !== 'completed' ? `<button class="btn-progress" onclick="updateStatus(${task.id}, 'in-progress')">▶ Start</button>` : ''}
+            ${task.status !== 'completed' ? `<button class="btn-complete" onclick="updateStatus(${task.id}, 'completed')">✔ Done</button>` : ''}
+            <button class="btn-delete" onclick="deleteTask(${task.id})">🗑 Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function addTask() {
+      const title = document.getElementById('taskTitle').value.trim();
+      const description = document.getElementById('taskDesc').value.trim();
+      if (!title) { alert('Please enter a task title!'); return; }
+      await fetch('/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description })
+      });
+      document.getElementById('taskTitle').value = '';
+      document.getElementById('taskDesc').value = '';
+      loadTasks();
+    }
+
+    async function updateStatus(id, status) {
+      await fetch(`/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      if (!confirm('Delete this task?')) return;
+      await fetch(`/tasks/${id}`, { method: 'DELETE' });
+      loadTasks();
+    }
+
+    function filterTasks(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTasks();
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>
